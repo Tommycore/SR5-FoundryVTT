@@ -578,20 +578,20 @@ export class SR5Item extends Item {
         }
     }
 
+    /**
+     * Equip one ammo item exclusivley.
+     * 
+     * @param iid Item id of the to be exclusivley equipped ammo item.
+     */
     async equipAmmo(iid) {
-        // only allow ammo that was just clicked to be equipped
-        const ammo = this.items
-            .filter((item) => item.type === 'ammo')
-            .map((item) => {
-                const ownedItem = this.getOwnedItem(item.id);
-                const ammoData = ownedItem?.asAmmoData();
-
-                if (ownedItem && ammoData) {
-                    ammoData.data.technology.equipped = iid === item.id;
-                    return ownedItem.data;
-                }
-            });
-        await this.updateOwnedItem(ammo);
+        // Collect all item data and update at once.
+        const updateData: Record<any, any>[] = [];
+        const ammoItems = this.items.filter(item => item.type === 'ammo');
+        for (const item of ammoItems) {
+            updateData.push({'system.technology.equipped': iid === item.id, _id: item.id});
+        }
+        
+        if (updateData) await this.updateOwnedItem(updateData);
     }
 
     async addNewLicense() {
@@ -958,6 +958,7 @@ export class SR5Item extends Item {
         }
     }
 
+    // TODO: Rework to either use custom embeddedCollection or Map
     getOwnedItem(itemId): SR5Item | undefined {
         const items = this.items;
         if (!items) return;
