@@ -416,6 +416,13 @@ export class SuccessTest {
     async saveUserSelectionAfterDialog() {}
 
     /**
+     * Allow sub-classes to alter the base value calculation.
+     * 
+     * This can be used to dynamically alter action calculation before anything else.
+     */
+    alterBaseValues() {}
+
+    /**
      * Overwrite this method if you need to alter base values.
      */
     prepareBaseValues() {
@@ -425,6 +432,9 @@ export class SuccessTest {
 
     /**
      * Handle chosen modifier types and apply them to the pool modifiers.
+     * 
+     * NOTE: To keep this.pool.mod and this.modifiers.mod in sync, never remove
+     *       a modifier. Rather set it to zero, causing it to not be shown.
      */
     applyPoolModifiers() {
         const pool = new PartsList(this.pool.mod);
@@ -1032,6 +1042,8 @@ export class SuccessTest {
         await this.prepareDocumentModifiers();
         await this.prepareDocumentData();
 
+        this.alterBaseValues();
+
         // Initial base value preparation will show default result without any user input.
         this.prepareBaseValues();
         this.calculateBaseValues();
@@ -1300,24 +1312,34 @@ export class SuccessTest {
     }
 
     /**
+     * This class should be used for the opposing test implementation.
+     */
+    get _opposedTestClass(): any|undefined {
+        if (!this.data.opposed || !this.data.opposed.test) return;
+        return TestCreator._getTestClass(this.data.opposed.test);
+    }
+
+    /**
      * Prepare opposed test action buttons.
      *
      * Currently, one opposed action is supported, however the template
      * is prepared to support multiple action buttons.
      */
     _prepareOpposedActionsTemplateData() {
-        if (!this.data.opposed || !this.data.opposed.test) return [];
-
         // @ts-ignore TODO: Move this into a helper
-        const testCls = game.shadowrun5e.tests[this.data.opposed.test];
-        if (!testCls) return console.error('Shadowrun 5e | Opposed Action has no test class registered.')
+        const testCls = this._opposedTestClass;
+        if (!testCls) {
+            console.error('Shadowrun 5e | Opposed Action has no test class registered.');
+            return [];
+        }
 
         const action = {
             // Store the test implementation registration name.
-            test: this.data.opposed.test,
+            test: testCls.name,
             label: testCls.label
         };
 
+        // Show the flat dice pool modifier on the chat action.
         if (this.data.opposed.mod) {
             action.label += ` ${this.data.opposed.mod}`;
         }
