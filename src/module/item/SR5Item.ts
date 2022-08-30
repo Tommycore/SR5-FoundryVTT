@@ -499,14 +499,12 @@ export class SR5Item extends Item {
         return data.blast.radius > 0;
     }
 
+    /**
+     * Toggle equipment state of a single Modification item.
+     * @param iid Modification item id to be equip toggled
+     */
     async equipWeaponMod(iid) {
-        const mod = this.getOwnedItem(iid);
-        if (mod) {
-            const dupData = duplicate(mod.data);
-            const data = dupData.data as TechnologyPartData;
-            data.technology.equipped = !data.technology.equipped;
-            await this.updateOwnedItem(dupData);
-        }
+        await this.equipNestedItem(iid, 'modification', {unequipOthers: false, toggle: true});
     }
 
     /**
@@ -578,20 +576,32 @@ export class SR5Item extends Item {
         }
     }
 
+    async equipNestedItem(id: string, type: string, options: {unequipOthers?: boolean, toggle?: boolean}={}) {
+        const unequipOthers = options.unequipOthers || false;
+        const toggle = options.toggle || false;
+
+        // Collect all item data and update at once.
+        const updateData: Record<any, any>[] = [];
+        const ammoItems = this.items.filter(item => item.type === type);
+            
+        for (const item of ammoItems) {
+            if (!unequipOthers && item.id !== id) continue;
+            //@ts-ignore foundry-vtt-types v10
+            const equip = toggle ? !item.system.technology.equipped : id === item.id;
+
+            updateData.push({_id: item.id, 'system.technology.equipped': equip});
+        }
+
+        if (updateData) await this.updateOwnedItem(updateData);
+    }
+
     /**
      * Equip one ammo item exclusivley.
      * 
-     * @param iid Item id of the to be exclusivley equipped ammo item.
+     * @param id Item id of the to be exclusivley equipped ammo item.
      */
-    async equipAmmo(iid) {
-        // Collect all item data and update at once.
-        const updateData: Record<any, any>[] = [];
-        const ammoItems = this.items.filter(item => item.type === 'ammo');
-        for (const item of ammoItems) {
-            updateData.push({'system.technology.equipped': iid === item.id, _id: item.id});
-        }
-        
-        if (updateData) await this.updateOwnedItem(updateData);
+    async equipAmmo(id) {
+        await this.equipNestedItem(id, 'ammo', {unequipOthers: true});
     }
 
     async addNewLicense() {
