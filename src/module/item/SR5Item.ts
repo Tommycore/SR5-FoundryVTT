@@ -579,7 +579,7 @@ export class SR5Item extends Item {
             }, []);
 
         if (newAmmunition && newAmmunition.length) {
-            await this.updateOwnedItem(newAmmunition);
+            await this.updateNestedItems(newAmmunition);
         }
     }
 
@@ -599,7 +599,7 @@ export class SR5Item extends Item {
             updateData.push({_id: item.id, 'system.technology.equipped': equip});
         }
 
-        if (updateData) await this.updateOwnedItem(updateData);
+        if (updateData) await this.updateNestedItems(updateData);
     }
 
     /**
@@ -906,7 +906,7 @@ export class SR5Item extends Item {
      * @param itemData
      * @param options
      */
-    async createOwnedItem(itemData, options = {}) {
+    async createNestedItem(itemData, options = {}) {
         if (!Array.isArray(itemData)) itemData = [itemData];
         // weapons accept items
         if (this.type === 'weapon') {
@@ -936,43 +936,43 @@ export class SR5Item extends Item {
      * Prepare embeddedItems
      */
     prepareNestedItems() {
-        // super.prepareNestedItems();
-        let items = this.getNestedItems();
+        this.items = this.items || [];
+        
+        const items = this.getNestedItems();
+        if (!items) return;
 
-        // Templates and further logic need a items HashMap, yet the flag provides an array.
-        if (items) {
+        // Reduce items to id:item HashMap style
+        const loaded = this.items.reduce((object, item) => {
+            object[item.id as string] = item;
+            return object;
+        }, {});
 
-            const existing = (this.items || []).reduce((object, item) => {
-                object[item.id as string] = item;
-                return object;
-            }, {});
+        // Merge and overwrite existing owned items with new changes.
+        const tempItems = items.map((item) => {
+            // Set user permissions to owner, to allow none-GM users to edit their own nested items.
+            const data = game.user ? {ownership: {[game.user.id]: CONST.DOCUMENT_PERMISSION_LEVELS.OWNER}} :
+                                     {};
+            item = mergeObject(item, data);
 
-            // Merge and overwrite existing owned items with new changes.
-            this.items = items.map((item) => {
-                // Set user permissions to owner, to allow none-GM users to edit their own nested items.
-                // @ts-ignore // TODO: foundry-vtt-types v10
-                const data = game.user ? {permission: {[game.user.id]: CONST.DOCUMENT_PERMISSION_LEVELS.OWNER}} :
-                                          {};
+            // Case: MODIFY => Update existing item.
+            if (item._id in loaded) {
+                const currentItem = loaded[item._id];
+                
+                // Update DocumentData directly, since we're not really having database items here.
+                currentItem.updateSource(item);
+                currentItem.prepareData();
+                return currentItem;
 
-                // Case: MODIFY => Update existing item.
-                if (item._id in existing) {
-                    const currentItem = existing[item._id];
+            // Case: CREATE => Create new item.
+            } else {
+                // NOTE: It's important to deliver the item as the item parent document, even though this is meant for actor owners.
+                //       The legacy approach for embeddedItems (within another item) relies upon this.actor
+                //       returning an SR5Item instance to call .updateEmbeddedEntities, while Foundry expects an actor
+                return new SR5Item(item, {parent: this as unknown as SR5Actor});
+            }
+        });
 
-                    // Update DocumentData directly, since we're not really having database items here.
-                    currentItem.data.update({...item, ...data});
-                    currentItem.prepareData();
-                    return currentItem;
-
-                // Case: CREATE => Create new item.
-                } else {
-
-                    // NOTE: It's important to deliver the item as the item parent document, even though this is meant for actor owners.
-                    //       The legacy approach for embeddedItems (within another item) relies upon this.actor
-                    //       returning an SR5Item instance to call .updateEmbeddedEntities, while Foundry expects an actor
-                    return new SR5Item({...item, ...data}, {parent: this as unknown as SR5Actor});
-                }
-            });
-        }
+        this.items = tempItems;
     }
 
     // TODO: Rework to either use custom embeddedCollection or Map
@@ -983,7 +983,7 @@ export class SR5Item extends Item {
     }
 
     // TODO: Rework this method. It's complicated and obvious optimizations can be made. (find vs findIndex)
-    async updateOwnedItem(changes) {
+    async updateNestedItems(changes) {
         const items = duplicate(this.getNestedItems());
         if (!items) return;
         changes = Array.isArray(changes) ? changes : [changes];
@@ -1020,7 +1020,7 @@ export class SR5Item extends Item {
      */
     // @ts-ignore
     async updateEmbeddedEntity(embeddedName,data, options?): Promise<any> {
-        await this.updateOwnedItem(data);
+        await this.updateNestedItems(data);
         return this;
     }
 
@@ -1444,7 +1444,7 @@ export class SR5Item extends Item {
         await this.update({'data.ic': hostData.data.ic});
     }
 
-    get _isEmbeddedItem(): boolean {
+    get _isNestedItem(): boolean {
         return this.hasOwnProperty('parent') && this.parent instanceof SR5Item;
     }
 
@@ -1453,7 +1453,7 @@ export class SR5Item extends Item {
      *
      * @param data changes made to the SR5ItemData
      */
-    async updateEmbeddedItem(data): Promise<this> {
+    async updateNestedItem(data): Promise<this> {
         if (!this.parent || this.parent instanceof SR5Actor) return this;
         // Inform the parent item about changes to one of it's embedded items.
         // TODO: updateOwnedItem needs the id of the update item. hand the item itself over, to the hack within updateOwnedItem for this.
@@ -1461,7 +1461,7 @@ export class SR5Item extends Item {
 
         // Shadowrun Items can contain other items, while Foundry Items can't. Use the system local implementation for items.
         // @ts-ignore
-        await this.parent.updateOwnedItem(data);
+        await this.parent.updateNestedItems(data);
 
         // After updating all item embedded data, rerender the sheet to trigger the whole rerender workflow.
         // Otherwise changes in the template of an hiddenItem will show for some fields, while not rerendering all
@@ -1473,8 +1473,8 @@ export class SR5Item extends Item {
 
     async update(data, options?): Promise<this> {
         // Item.item => Embedded item into another item!
-        if (this._isEmbeddedItem) {
-            return this.updateEmbeddedItem(data);
+        if (this._isNestedItem) {
+            return this.updateNestedItem(data);
         }
 
         // Actor.item => Directly owned item by an actor!

@@ -11,10 +11,6 @@ export class SR5ItemSheet extends ItemSheet {
     private _shownDesc: any[] = [];
     private _scroll: string;
 
-    getEmbeddedItems() {
-        return this.item.items || [];
-    }
-
     /**
      * Extend and override the default options used by the Simple Item Sheet
      * @returns {Object}
@@ -44,12 +40,15 @@ export class SR5ItemSheet extends ItemSheet {
         let data = super.getData();
         // Foundry 0.8 will return data as an sheet data while Foundry 0.7 will return data as an item data.
         // Therefore data is nested one deeper. The alternative would be to rework all references with one more data...
-        // @ts-ignore // TODO: foundry-vtt-types confusion
+        //@ts-ignore
         data.type = data.data.type;
-        // @ts-ignore // TODO: foundry-vtt-types confusion
-        data.data = data.data.data;
-        // @ts-ignore // TODO: foundry-vtt-types confusion
-        const itemData = data.data;
+        // data.data = data.system = data.data;
+        //@ts-ignore
+        data.system = data.data.system;
+        //@ts-ignore // TODO: remove foundry-vtt-types v10
+        data.data = data.data.system;
+        //@ts-ignore
+        const itemData = this.item.system;
 
         if (itemData.action) {
             try {
@@ -80,12 +79,14 @@ export class SR5ItemSheet extends ItemSheet {
         }
 
         data['config'] = SR5;
-        const items = this.getEmbeddedItems();
+        const items = this.item.items;
         const [ammunition, weaponMods, armorMods] = items.reduce(
             (parts: [ItemData[], ItemData[], ItemData[]], item: SR5Item) => {
                 if (item.type === 'ammo') parts[0].push(item.data);
-                if (item.type === 'modification' && "type" in item.data.data && item.data.data.type === 'weapon') parts[1].push(item.data);
-                if (item.type === 'modification' && "type" in item.data.data && item.data.data.type === 'armor') parts[2].push(item.data);
+                //@ts-ignore foundry-vtt-types v10
+                if (item.type === 'modification' && "type" in item.system && item.system.type === 'weapon') parts[1].push(item._source);
+                //@ts-ignore foundry-vtt-types v10
+                if (item.type === 'modification' && "type" in item.system && item.system.type === 'armor') parts[2].push(item._source);
                 return parts;
             },
             [[], [], []],
@@ -273,7 +274,7 @@ export class SR5ItemSheet extends ItemSheet {
                 item = game.items.get(data.id);
             }
 
-            return await this.item.createOwnedItem(item.data);
+            return await this.item.createNestedItem(item._source);
         }
 
         // Add items to hosts WAN.
@@ -388,13 +389,14 @@ export class SR5ItemSheet extends ItemSheet {
         const itemData = {
             name: `New ${Helpers.label(type)}`,
             type: type,
-            data: {type: 'weapon'}
+            system: {type: 'weapon'}
         };
         // @ts-ignore
         // itemData.data.type = 'weapon';
         // @ts-ignore
         const item = new SR5Item(itemData, {parent: this.item});
-        await this.item.createOwnedItem(item.data);
+        //@ts-ignore foundry-vtt-types v10
+        await this.item.createNestedItem(item._source);
     }
 
     async _onAmmoReload(event) {
@@ -419,7 +421,8 @@ export class SR5ItemSheet extends ItemSheet {
         };
         // @ts-ignore
         const item = new SR5Item(itemData, {parent: this.item});
-        await this.item.createOwnedItem(item.data);
+        // @ts-ignore foundry-vtt-types v10
+        await this.item.createNestedItem(item._source);
     }
 
     async _onOwnedItemRemove(event) {
