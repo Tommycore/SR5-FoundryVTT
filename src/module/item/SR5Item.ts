@@ -126,25 +126,25 @@ export class SR5Item extends Item {
 
     // Flag Functions
     getLastFireMode(): FireModeData {
-        return this.getFlag(SYSTEM_NAME, FLAGS.LastFireMode) || { value: 0, defense: 0, label: 'SR5.FireMode' };
+        return this.getFlag(SYSTEM_NAME, FLAGS.LastFireMode) as FireModeData || DefaultValues.fireModeData();
     }
     async setLastFireMode(fireMode: FireModeData) {
         return this.setFlag(SYSTEM_NAME, FLAGS.LastFireMode, fireMode);
     }
     getLastSpellForce(): SpellForceData {
-        return this.getFlag(SYSTEM_NAME, FLAGS.LastSpellForce) || { value: 0 };
+        return this.getFlag(SYSTEM_NAME, FLAGS.LastSpellForce) as SpellForceData|| { value: 0 };
     }
     async setLastSpellForce(force: SpellForceData) {
         return this.setFlag(SYSTEM_NAME, FLAGS.LastSpellForce, force);
     }
     getLastComplexFormLevel(): ComplexFormLevelData {
-        return this.getFlag(SYSTEM_NAME, FLAGS.LastComplexFormLevel) || { value: 0 };
+        return this.getFlag(SYSTEM_NAME, FLAGS.LastComplexFormLevel) as ComplexFormLevelData || { value: 0 };
     }
     async setLastComplexFormLevel(level: ComplexFormLevelData) {
         return this.setFlag(SYSTEM_NAME, FLAGS.LastComplexFormLevel, level);
     }
     getLastFireRangeMod(): FireRangeData {
-        return this.getFlag(SYSTEM_NAME, FLAGS.LastFireRange) || { value: 0 };
+        return this.getFlag(SYSTEM_NAME, FLAGS.LastFireRange) as FireRangeData || { value: 0 };
     }
     async setLastFireRangeMod(environmentalMod: FireRangeData) {
         return this.setFlag(SYSTEM_NAME, FLAGS.LastFireRange, environmentalMod);
@@ -154,7 +154,7 @@ export class SR5Item extends Item {
      * Return an Array of the Embedded Item Data
      */
     getNestedItems(): any[] {
-        let items = this.getFlag(SYSTEM_NAME, FLAGS.EmbeddedItems);
+        let items = this.getFlag(SYSTEM_NAME, FLAGS.EmbeddedItems) as any[];
 
         items = items ? items : [];
 
@@ -168,6 +168,13 @@ export class SR5Item extends Item {
             if (item.effects && !Array.isArray(item.effects)) {
                 item.effects = Helpers.convertIndexedObjectToArray(item.effects);
             }
+            // foundry-vtt-types v10 - TODO: Move into migration...
+            // if (item.data) {
+            //     item.system = item.system || {};
+            //     mergeObject(item.system, item.data);
+            //     item.system = item.data;
+            //     delete item.data;
+            // }
             return item;
         });
 
@@ -985,6 +992,7 @@ export class SR5Item extends Item {
             const index = items.findIndex((i) => i._id === itemChanges._id);
             if (index === -1) return;
             const item = items[index];
+
             // TODO: The _id field has been added by the system. Even so, don't change the id to avoid any byproducts.
             delete itemChanges._id;
 
@@ -1112,20 +1120,20 @@ export class SR5Item extends Item {
      * @param key
      * @param value
      */
-    setFlag(scope: string, key: string, value: any){
-        const newValue = Helpers.onSetFlag(value);
-        return super.setFlag(scope, key, newValue);
-    }
+    // setFlag(scope: string, key: string, value: any){
+    //     const newValue = Helpers.onSetFlag(value);
+    //     return super.setFlag(scope, key, newValue);
+    // }
 
     /**
      * Override getFlag to add back the 'SR5.' keys correctly to be handled
      * @param scope
      * @param key
      */
-    getFlag(scope: string, key: string): any {
-        const data = super.getFlag(scope, key);
-        return Helpers.onGetFlag(data);
-    }
+    // getFlag(scope: string, key: string): any {
+    //     const data = super.getFlag(scope, key);
+    //     return Helpers.onGetFlag(data);
+    // }
 
     /**
      * Passthrough functions
