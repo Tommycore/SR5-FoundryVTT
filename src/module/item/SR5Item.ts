@@ -612,22 +612,24 @@ export class SR5Item extends Item {
     }
 
     async addNewLicense() {
-        const sin = duplicate(this.asSinData());
-        if (!sin) return;
+        if (this.type !== 'sin') return;
 
         // NOTE: This might be related to Foundry data serialization sometimes returning arrays as ordered HashMaps...
-        if (typeof sin.data.licenses === 'object') {
-            // @ts-ignore
-            sin.data.licenses = Object.values(sin.data.licenses);
-        }
-
-        sin.data.licenses.push({
+        //@ts-ignore foundry-vtt-types v10
+        const licenses = foundry.utils.getType(this.system.licenses) === 'Object' ? 
+            //@ts-ignore foundry-vtt-types v10
+            Object.values(this.system.licenses) :
+            //@ts-ignore foundry-vtt-types v10
+            this.system.licenses;
+        
+        // Add the new license to the list
+        licenses.push({
             name: '',
             rtg: '',
             description: '',
         });
 
-        await this.update(sin);
+        await this.update({'system.licenses': licenses});
     }
 
     getRollPartsList(): ModList<number> {
@@ -774,12 +776,17 @@ export class SR5Item extends Item {
         }
     }
 
+    /**
+     * SIN Item - remove a single license within this SIN
+     * 
+     * @param index The license list index
+     */
     async removeLicense(index) {
-        const data = duplicate(this.asSinData());
-        if (data) {
-            data.data.licenses.splice(index, 1);
-            await this.update(data);
-        }
+        if (this.type !== 'sin') return;
+
+        //@ts-ignore foundry-vtt-types v10
+        const licenses = this.system.licenses.splice(index, 1);
+        await this.update({'system.licenses': licenses});
     }
 
     isAction(): boolean {
