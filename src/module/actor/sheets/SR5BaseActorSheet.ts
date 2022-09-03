@@ -173,7 +173,7 @@ export class SR5BaseActorSheet extends ActorSheet {
         let data = super.getData() as any;
         data = {
             ...data,
-            // @ts-ignore foundry-vtt-types v10
+            // @ts-ignore TODO: foundry-vtt-types v10
             data: data.data.data,
             system: data.data.data
         }

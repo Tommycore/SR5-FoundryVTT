@@ -104,6 +104,7 @@ export class Helpers {
     }
 
     // replace 'SR5.'s on keys with 'SR5_DOT_'
+    //@ts-ignore TODO: foundry-vtt-types v10
     static onSetFlag(data) {
         if (typeof data !== 'object') return data;
         if (data === undefined || data === null) return data;
@@ -116,6 +117,7 @@ export class Helpers {
     }
 
     // replace 'SR5_DOT_' with 'SR5.' on keys
+    //@ts-ignore TODO: foundry-vtt-types v10
     static onGetFlag(data) {
         if (typeof data !== 'object') return data;
         if (data === undefined || data === null) return data;

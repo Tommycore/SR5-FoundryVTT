@@ -63,7 +63,8 @@ export class RangedAttackTest extends SuccessTest {
         const weaponData = this.item.asWeaponData();
         if (!weaponData) return;
 
-        this.data.fireModes = FireModeRules.availableFireModes(weaponData.data.range.modes);
+        //@ts-ignore // TODO: foundry-vtt-types v10 
+        this.data.fireModes = FireModeRules.availableFireModes(weaponData.system.range.modes);
         // Current firemode selected
         const lastFireMode = this.item.getLastFireMode() || DefaultValues.fireModeData();
         // Try pre-selection based on last fire mode.

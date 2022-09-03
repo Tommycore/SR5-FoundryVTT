@@ -168,7 +168,7 @@ export class SR5Item extends Item {
             if (item.effects && !Array.isArray(item.effects)) {
                 item.effects = Helpers.convertIndexedObjectToArray(item.effects);
             }
-            // foundry-vtt-types v10 - TODO: Move into migration...
+            // TODO: foundry-vtt-types v10 - TODO: Move into migration...
             // if (item.data) {
             //     item.system = item.system || {};
             //     mergeObject(item.system, item.data);
@@ -221,11 +221,13 @@ export class SR5Item extends Item {
         // Description labels might have changed since last data prep.
         this.labels = {};
 
-        if (this.data.type === 'sin') {
-            if (typeof this.data.data.licenses === 'object') {
+        if (this.type === 'sin') {
+            //@ts-ignore // TODO: foundry-vtt-types v10 
+            if (typeof this.system.licenses === 'object') {
                 //@ts-ignore // taMiF: This seems to be a hacky solution to some internal or Foundry issue with reading
                 //                      a object/HashMap when an array/iterable was expected
-                this.data.data.licenses = Object.values(this.data.data.licenses);
+                //@ts-ignore // TODO: foundry-vtt-types v10 
+                this.system.licenses = Object.values(this.system.licenses);
             }
         }
         const equippedMods = this.getEquippedMods();
@@ -272,12 +274,13 @@ export class SR5Item extends Item {
             }
 
             // Item.prepareData is called once (first) with an empty SR5Actor instance without .data and once (second) with .data.
+            //@ts-ignore // TODO: foundry-vtt-types v10 Is there way with v10 to determine if data has been set? (second round)
             if (this.actor?.data) {
                 action.damage.source = {
                     actorId: this.actor.id as string,
                     itemId: this.id as string,
                     itemName: this.name as string,
-                    itemType: this.data.type
+                    itemType: this.type
                 };
             }
 
@@ -288,18 +291,18 @@ export class SR5Item extends Item {
                 const modification = mod.asModificationData();
                 if (!modification) return;
 
-                if (modification.data.accuracy) {
-                    limitParts.addUniquePart(mod.name as string, modification.data.accuracy);
-                }
-                if (modification.data.dice_pool) {
-                    dpParts.addUniquePart(mod.name as string, modification.data.dice_pool);
-                }
+                //@ts-ignore // TODO: foundry-vtt-types v10 
+                if (modification.system.accuracy) limitParts.addUniquePart(mod.name as string, modification.system.accuracy);
+                //@ts-ignore // TODO: foundry-vtt-types v10 
+                if (modification.system.dice_pool) dpParts.addUniquePart(mod.name as string, modification.system.dice_pool);
+                
             });
 
 
 
             if (equippedAmmo) {
-                const ammoData = equippedAmmo.data.data as AmmoData;
+                //@ts-ignore // TODO: foundry-vtt-types v10 
+                const ammoData = equippedAmmo.system as AmmoData;
                 // add mods to damage from ammo
                 action.damage.mod = PartsList.AddUniquePart(action.damage.mod, equippedAmmo.name as string, ammoData.damage);
                 // add mods to ap from ammo
@@ -336,27 +339,30 @@ export class SR5Item extends Item {
             if (range.rc) {
                 const rangeParts = new PartsList();
                 equippedMods.forEach((mod) => {
-                    //@ts-ignore // TypeScript doesn't like this.data.data Item.Data<DataType> possibly being all the things.
-                    if (mod.data.data.rc) rangeParts.addUniquePart(mod.name, mod.data.data.rc);
+                    //@ts-ignore // TypeScript doesn't like this.system Item.Data<DataType> possibly being all the things.
+                    //@ts-ignore // TODO: foundry-vtt-types v10 
+                    if (mod.system.rc) rangeParts.addUniquePart(mod.name, mod.system.rc);
                     // handle overrides from ammo
                 });
-                //@ts-ignore // TypeScript doesn't like this.data.data Item.Data<DataType> possibly being all the things.
+                //@ts-ignore // TypeScript doesn't like this.system Item.Data<DataType> possibly being all the things.
                 range.rc.mod = rangeParts.list;
-                //@ts-ignore // TypeScript doesn't like this.data.data Item.Data<DataType> possibly being all the things.
+                //@ts-ignore // TypeScript doesn't like this.system Item.Data<DataType> possibly being all the things.
                 if (range.rc) range.rc.value = Helpers.calcTotal(range.rc);
             }
         }
 
         const adeptPower = this.asAdeptPowerData();
         if (adeptPower) {
-            adeptPower.data.type = adeptPower.data.action.type ? 'active' : 'passive';
+            //@ts-ignore // TODO: foundry-vtt-types v10 
+            adeptPower.system.type = adeptPower.system.action.type ? 'active' : 'passive';
         }
 
         // Switch item data preparation between types...
         // ... this is ongoing work to clean up SR5item.prepareData
-        switch (this.data.type) {
+        switch (this.type) {
             case 'host':
-                HostDataPreparation(this.data.data);
+                //@ts-ignore // TODO: foundry-vtt-types v10 
+                HostDataPreparation(this.system);
         }
     }
 
@@ -391,25 +397,27 @@ export class SR5Item extends Item {
 }
 
     getChatData(htmlOptions?) {
-        const data = duplicate(this.data.data);
+        //@ts-ignore // TODO: foundry-vtt-types v10 
+        const system = duplicate(this.system);
         const { labels } = this;
         //@ts-ignore // This is a hacky monkey patch solution to add a property to the item data
         //              that's not actually defined in any SR5Item typing.
-        if (!data.description) data.description = {};
+        if (!system.description) system.description = {};
         // TextEditor.enrichHTML will return null as a string, making later handling difficult.
-        if (!data.description.value) data.description.value = '';
+        if (!system.description.value) system.description.value = '';
 
-        data.description.value = TextEditor.enrichHTML(data.description.value, htmlOptions);
+        system.description.value = TextEditor.enrichHTML(system.description.value, htmlOptions);
 
         const props = [];
-        const func = ChatData[this.data.type];
-        if (func) func(duplicate(data), labels, props, this);
+        //@ts-ignore // TODO: foundry-vtt-types v10 
+        const func = ChatData[this.type];
+        if (func) func(duplicate(system), labels, props, this);
 
         //@ts-ignore // This is a hacky monkey patch solution to add a property to the item data
         //              that's not actually defined in any SR5Item typing.
-        data.properties = props.filter((p) => !!p);
+        system.properties = props.filter((p) => !!p);
 
-        return data;
+        return system;
     }
 
     getActionTestName(): string {
@@ -438,7 +446,8 @@ export class SR5Item extends Item {
 
      getBlastData(actionTestData?: ActionTestData): BlastData | undefined {
         if (this.isSpell() && this.isAreaOfEffect()) {
-            const data = this.data.data as SpellData;
+            //@ts-ignore // TODO: foundry-vtt-types v10 
+            const system = this.system as SpellData;
 
             // By default spell distance is equal to it's Force.
             let distance = this.getLastSpellForce().value;
@@ -449,7 +458,7 @@ export class SR5Item extends Item {
             }
 
             // Extended spells have a longer range.
-            if (data.extended) distance *= 10;
+            if (system.extended) distance *= 10;
             const dropoff = 0;
 
             return {
@@ -458,10 +467,11 @@ export class SR5Item extends Item {
             }
 
         } else if (this.isGrenade()) {
-            const data = this.data.data as WeaponData;
+            //@ts-ignore // TODO: foundry-vtt-types v10 
+            const system = this.system as WeaponData;
 
-            const distance = data.thrown.blast.radius;
-            const dropoff = data.thrown.blast.dropoff;
+            const distance = system.thrown.blast.radius;
+            const dropoff = system.thrown.blast.dropoff;
 
             return {
                 radius: distance,
@@ -474,8 +484,10 @@ export class SR5Item extends Item {
 
             if (!ammoData) return {radius: 0, dropoff: 0};
 
-            const distance = ammoData.data.blast.radius;
-            const dropoff = ammoData.data.blast.dropoff;
+            //@ts-ignore // TODO: foundry-vtt-types v10 
+            const distance = ammoData.system.blast.radius;
+            //@ts-ignore // TODO: foundry-vtt-types v10 
+            const dropoff = ammoData.system.blast.dropoff;
 
             return {
                 radius: distance,
@@ -502,8 +514,9 @@ export class SR5Item extends Item {
     hasExplosiveAmmo(): boolean {
         const ammo = this.getEquippedAmmo();
         if (!ammo) return false;
-        const data = ammo.data.data as AmmoData;
-        return data.blast.radius > 0;
+        //@ts-ignore // TODO: foundry-vtt-types v10 
+        const system = ammo.system as AmmoData;
+        return system.blast.radius > 0;
     }
 
     /**
@@ -539,37 +552,42 @@ export class SR5Item extends Item {
      * @param fired Amount of bullets fired.
      */
     async useAmmo(fired) {
-        const weapon = duplicate(this.asWeaponData());
-        if (weapon) {
-            const { ammo } = weapon.data;
-            ammo.current.value = Math.max(0, ammo.current.value - fired);
+        if (this.type !== 'weapon') return;
 
-            return await this.update(weapon);
-        }
+        //@ts-ignore // TODO: foundry-vtt-types v10 
+        const value = Math.max(0, this.system.ammo.current.value - fired);
+        return await this.update({'system.ammo.current.value': value});
     }
 
     async reloadAmmo() {
-        const data = duplicate(this.asWeaponData());
+        if (this.type !== 'weapon') return;
+        
 
-        if (!data) return;
-
-        const { ammo } = data.data;
-        const diff = ammo.current.max - ammo.current.value;
-        ammo.current.value = ammo.current.max;
-
-        if (ammo.spare_clips) {
-            ammo.spare_clips.value = Math.max(0, ammo.spare_clips.value - 1);
+        // Reload this weapons ammunition to it's max capacity.
+        const updateData = {};
+        //@ts-ignore // TODO: foundry-vtt-types v10 
+        const diff = this.system.ammo.current.max - this.system.ammo.current.value;
+        //@ts-ignore // TODO: foundry-vtt-types v10 
+        updateData['system.ammo.current.value'] = this.system.ammo.current.max;
+        
+        // TODO: Make actual use of this spare clips system...
+        //@ts-ignore // TODO: foundry-vtt-types v10 
+        if (this.system.ammo.current.spare_clips) {
+            //@ts-ignore // TODO: foundry-vtt-types v10 
+            updateData['system.ammo.current.value'] = Math.max(0, this.system.ammo.spare_clips.value - 1);
         }
+        
+        await this.update(updateData);
 
-        await this.update(data);
 
+        // Reduce capacity in whatever equipped nested ammunition item.
         const newAmmunition = (this.items || [])
-            .filter((i) => i.data.type === 'ammo')
+            .filter((i) => i.type === 'ammo')
             .reduce((acc, item) => {
-                const ammoData = item.asAmmoData();
-
-                if (ammoData && ammoData.data.technology.equipped) {
-                    const { technology } = ammoData.data;
+                //@ts-ignore // TODO: foundry-vtt-types v10 
+                if (item.data && item.data.system.technology.equipped) {
+                    //@ts-ignore // TODO: foundry-vtt-types v10 
+                    const { technology } = item.data.system;
                     const qty = typeof technology.quantity === 'string' ? 0 : technology.quantity;
                     technology.quantity = Math.max(0, qty - diff);
                     // @ts-ignore
@@ -593,7 +611,7 @@ export class SR5Item extends Item {
             
         for (const item of ammoItems) {
             if (!unequipOthers && item.id !== id) continue;
-            //@ts-ignore foundry-vtt-types v10
+            //@ts-ignore TODO: foundry-vtt-types v10
             const equip = toggle ? !item.system.technology.equipped : id === item.id;
 
             updateData.push({_id: item.id, 'system.technology.equipped': equip});
@@ -615,11 +633,11 @@ export class SR5Item extends Item {
         if (this.type !== 'sin') return;
 
         // NOTE: This might be related to Foundry data serialization sometimes returning arrays as ordered HashMaps...
-        //@ts-ignore foundry-vtt-types v10
+        //@ts-ignore TODO: foundry-vtt-types v10
         const licenses = foundry.utils.getType(this.system.licenses) === 'Object' ? 
-            //@ts-ignore foundry-vtt-types v10
+            //@ts-ignore TODO: foundry-vtt-types v10
             Object.values(this.system.licenses) :
-            //@ts-ignore foundry-vtt-types v10
+            //@ts-ignore TODO: foundry-vtt-types v10
             this.system.licenses;
         
         // Add the new license to the list
@@ -658,8 +676,8 @@ export class SR5Item extends Item {
         const spec = this.getActionSpecialization();
         if (spec) parts.addUniquePart(spec, 2);
 
-        //@ts-ignore parseInt does allow for number type parameter.
-        const mod = parseInt(this.data.data.action.mod || 0);
+        //@ts-ignore parseInt does allow for number type parameter. // TODO: foundry-vtt-types v10
+        const mod = parseInt(this.system.action.mod || 0);
         if (mod) parts.addUniquePart('SR5.ItemMod', mod);
 
         const atts: (AttributeField | SkillField)[] | boolean = [];
@@ -694,6 +712,7 @@ export class SR5Item extends Item {
 
     asSinData(): SinItemData | undefined {
         if (this.isSin()) {
+            //@ts-ignore TODO: foundry-vtt-types v10
             return this.data as SinItemData;
         }
     }
@@ -704,6 +723,7 @@ export class SR5Item extends Item {
 
     asLifestyleData(): LifestyleItemData | undefined {
         if (this.isLifestyle()) {
+            //@ts-ignore TODO: foundry-vtt-types v10
             return this.data as LifestyleItemData;
         }
     }
@@ -714,6 +734,7 @@ export class SR5Item extends Item {
 
     asAmmoData(): AmmoItemData | undefined {
         if (this.isAmmo()) {
+            //@ts-ignore TODO: foundry-vtt-types v10
             return this.data as AmmoItemData;
         }
     }
@@ -724,6 +745,7 @@ export class SR5Item extends Item {
 
     asModificationData(): ModificationItemData | undefined {
         if (this.isModification()) {
+            //@ts-ignore TODO: foundry-vtt-types v10
             return this.data as ModificationItemData;
         }
     }
@@ -742,6 +764,7 @@ export class SR5Item extends Item {
 
     asProgramData(): ProgramItemData | undefined {
         if (this.isProgram()) {
+            //@ts-ignore TODO: foundry-vtt-types v10
             return this.data as ProgramItemData;
         }
     }
@@ -752,26 +775,29 @@ export class SR5Item extends Item {
 
     asQualityData(): QualityItemData | undefined {
         if (this.isQuality()) {
+            //@ts-ignore TODO: foundry-vtt-types v10
             return this.data as QualityItemData;
         }
     }
 
     isAdeptPower(): boolean {
-        return this.data.type === 'adept_power';
+        return this.type === 'adept_power';
     }
 
     asAdeptPowerData(): AdeptPowerItemData|undefined {
         if (this.isAdeptPower())
+        //@ts-ignore TODO: foundry-vtt-types v10
             return this.data as AdeptPowerItemData;
     }
 
 
     isHost(): boolean {
-        return this.data.type === 'host';
+        return this.type === 'host';
     }
 
     asHostData(): HostItemData|undefined {
         if (this.isHost()) {
+            //@ts-ignore TODO: foundry-vtt-types v10
             return this.data as HostItemData;
         }
     }
@@ -784,7 +810,7 @@ export class SR5Item extends Item {
     async removeLicense(index) {
         if (this.type !== 'sin') return;
 
-        //@ts-ignore foundry-vtt-types v10
+        //@ts-ignore TODO: foundry-vtt-types v10
         const licenses = this.system.licenses.splice(index, 1);
         await this.update({'system.licenses': licenses});
     }
@@ -795,6 +821,7 @@ export class SR5Item extends Item {
 
     asActionData(): ActionItemData | undefined {
         if (this.isAction()) {
+            //@ts-ignore TODO: foundry-vtt-types v10
             return this.data as ActionItemData;
         }
     }
@@ -803,51 +830,6 @@ export class SR5Item extends Item {
 
     async rollOpposedTest(target: SR5Actor, attack: AttackData, event):  Promise<void> {
         console.error(`Shadowrun5e | ${this.constructor.name}.rollOpposedTest is not supported anymore`);
-        return;
-        // const options = {
-        //     event,
-        //     fireModeDefense: 0,
-        //     cover: false,
-        //     attack
-        // };
-        //
-        // const parts = this.getOpposedTestMod();
-        // const action = this.getAction();
-        // if (!action) return;
-        //
-        // const { opposed } = action;
-        //
-        // if (opposed.type === 'defense') {
-        //     return await this.rollDefense(target, options);
-        //
-        // } else if (opposed.type === 'soak') {
-        //     options['damage'] = attack?.damage;
-        //     options['attackerHits'] = attack?.hits;
-        //     return await target.rollSoak(options, parts.list);
-        //
-        // } else if (opposed.type === 'armor') {
-        //     return target.rollArmor(options);
-        //
-        // } else if (opposed.skill && opposed.attribute) {
-        //     const skill = target.getSkill(opposed.skill);
-        //
-        //     if (!skill) {
-        //         ui.notifications?.error(game.i18n.localize("SR5.Errors.MissingSkill"));
-        //         return;
-        //     }
-        //
-        //     return target.rollSkill(skill, {
-        //         ...options,
-        //         attribute: opposed.attribute,
-        //     });
-        //
-        // } else if (opposed.attribute && opposed.attribute2) {
-        //     return target.rollTwoAttributes([opposed.attribute, opposed.attribute2], options);
-        //
-        // } else if (opposed.attribute) {
-        //     return target.rollSingleAttribute(opposed.attribute, options);
-        //
-        // }
     }
 
     async rollTestType(type: string, attack: AttackData, event, target: SR5Actor) {
@@ -912,6 +894,8 @@ export class SR5Item extends Item {
      * Create an item in this item
      * @param itemData
      * @param options
+     * 
+     * //@ts-ignore TODO: foundry-vtt-types v10 Rework method...
      */
     async createNestedItem(itemData, options = {}) {
         if (!Array.isArray(itemData)) itemData = [itemData];
@@ -923,8 +907,8 @@ export class SR5Item extends Item {
                 const item = duplicate(ogItem);
                 item._id = randomID(16);
                 if (item.type === 'ammo' || item.type === 'modification') {
-                    if (item?.data?.technology?.equipped) {
-                        item.data.technology.equipped = false;
+                    if (item?.system?.technology?.equipped) {
+                        item.system.technology.equipped = false;
                     }
                     currentItems.push(item);
                 }
@@ -932,9 +916,9 @@ export class SR5Item extends Item {
 
             await this.setNestedItems(currentItems);
         }
-        await this.prepareNestedItems();
-        await this.prepareData();
-        await this.render(false);
+        this.prepareNestedItems();
+        this.prepareData();
+        this.render(false);
 
         return true;
     }
@@ -1012,9 +996,9 @@ export class SR5Item extends Item {
         });
 
         await this.setNestedItems(items);
-        await this.prepareNestedItems();
-        await this.prepareData();
-        await this.render(false);
+        this.prepareNestedItems();
+        this.prepareData();
+        this.render(false);
         return true;
     }
 
@@ -1026,7 +1010,7 @@ export class SR5Item extends Item {
      * @param options
      */
     // @ts-ignore
-    async updateEmbeddedEntity(embeddedName,data, options?): Promise<any> {
+    async updateEmbeddedEntity(embeddedName, data, options?): Promise<any> {
         await this.updateNestedItems(data);
         return this;
     }
@@ -1120,27 +1104,6 @@ export class SR5Item extends Item {
 
         return DEFAULT_ROLL_NAME;
     }
-
-    /**
-     * Override setFlag to remove the 'SR5.' from keys in modlists, otherwise it handles them as embedded keys
-     * @param scope
-     * @param key
-     * @param value
-     */
-    // setFlag(scope: string, key: string, value: any){
-    //     const newValue = Helpers.onSetFlag(value);
-    //     return super.setFlag(scope, key, newValue);
-    // }
-
-    /**
-     * Override getFlag to add back the 'SR5.' keys correctly to be handled
-     * @param scope
-     * @param key
-     */
-    // getFlag(scope: string, key: string): any {
-    //     const data = super.getFlag(scope, key);
-    //     return Helpers.onGetFlag(data);
-    // }
 
     /**
      * Passthrough functions
@@ -1383,8 +1346,9 @@ export class SR5Item extends Item {
 
     getReach(): number {
         if (this.isMeleeWeapon()) {
-            const data = this.data.data as WeaponData;
-            return data.melee.reach ?? 0;
+            //@ts-ignore // TODO: foundry-vtt-types v10 
+            const system = this.system as WeaponData;
+            return system.melee.reach ?? 0;
         }
         return 0;
     }

@@ -1095,6 +1095,7 @@ export class SR5Actor extends Actor {
      * @param value
      */
     setFlag(scope: string, key: string, value: any): Promise<any> {
+        //@ts-ignore TODO: foundry-vtt-types v10
         const newValue = Helpers.onSetFlag(value);
         return super.setFlag(scope, key, newValue);
     }
@@ -1105,6 +1106,7 @@ export class SR5Actor extends Actor {
      * @param key
      */
     getFlag(scope: string, key: string): any {
+        //@ts-ignore TODO: foundry-vtt-types v10
         const data = super.getFlag(scope, key);
         return Helpers.onGetFlag(data);
     }
