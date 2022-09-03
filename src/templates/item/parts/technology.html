@@ -1,6 +1,6 @@
 <div class="flexcol flex0">
     <div class="technology">
-        {{#hasprop data 'grade'}}
+        {{#hasprop system 'grade'}}
         <div class="flexrow nowrap">
             <label>{{localize "SR5.CyberwareGrade"}}</label>
             <select name="system.grade" class="display">
@@ -9,7 +9,7 @@
                 {{/each}} {{/select}}
             </select>
         </div>
-        {{/hasprop}} {{#hasprop data 'essence'}}
+        {{/hasprop}} {{#hasprop system 'essence'}}
         <div class="flexrow nowrap">
             <label>{{localize "SR5.EssenceCost"}}</label>
             <input
@@ -22,7 +22,7 @@
                 placeholder="0"
             />
         </div>
-        {{/hasprop}} {{#hasprop data 'capacity'}}
+        {{/hasprop}} {{#hasprop system 'capacity'}}
         <div class="flexrow nowrap">
             <label>{{localize "SR5.Capacity"}}</label>
             <input
