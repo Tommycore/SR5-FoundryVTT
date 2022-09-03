@@ -173,8 +173,9 @@ export class SR5BaseActorSheet extends ActorSheet {
         let data = super.getData() as any;
         data = {
             ...data,
-            // @ts-ignore
-            data: data.data.data
+            // @ts-ignore foundry-vtt-types v10
+            data: data.data.data,
+            system: data.data.data
         }
 
         // Sheet related general purpose fields. These aren't persistent.
