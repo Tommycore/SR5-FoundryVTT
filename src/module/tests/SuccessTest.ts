@@ -1376,6 +1376,8 @@ export class SuccessTest {
 
         const formula = `0d6`;
         const roll = new SR5Roll(formula);
+        // evaluation is necessary for Roll DataModel validation.
+        roll.evaluate({async: false});
 
         const messageData = {
             user: game.user?.id,
