@@ -1,4 +1,5 @@
 {
+  "id": "shadowrun5e",
   "name": "shadowrun5e",
   "title": "Shadowrun 5th Edition",
   "description": "Shadowrun 5th Edition game",
@@ -10,8 +11,12 @@
     "allowBugReporter": true
   },
   "version": "0.8.2",
-  "minimumCoreVersion": "9",
-  "compatibleCoreVersion": "9",
+  "compatibility": {
+    "minimum": "10",
+    "maximum": "10",
+    "verified": "10.280"
+  },
+  "minimumCoreVersion": "10",
   "scripts": [],
   "esmodules": [
     "dist/bundle.js"
@@ -65,7 +70,6 @@
     }
   ],
   "system": [],
-  "dependencies": [],
   "socket": true,
   "manifest": "https://raw.githubusercontent.com/smilligan93/SR5-FoundryVTT/master/system.json",
   "download": "https://github.com/smilligan93/SR5-FoundryVTT/archive/v0.8.2.zip",
