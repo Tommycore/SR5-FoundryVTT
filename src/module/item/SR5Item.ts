@@ -80,6 +80,8 @@ import AmmunitionData = Shadowrun.AmmunitionData;
  *       Be wary of SR5Item.actor for this reason!
  */
 export class SR5Item extends Item {
+    static LOG_V10_COMPATIBILITY_WARNINGS = false;
+    
     // Item.items isn't the Foundry default ItemCollection but is overwritten within prepareNestedItems
     // to allow for embedded items in items in actors.
     items: SR5Item[];
