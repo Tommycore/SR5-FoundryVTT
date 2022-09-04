@@ -1142,7 +1142,8 @@ export class SR5Item extends Item {
         return this.wrapper.isWeapon();
     }
 
-    asWeaponData(): WeaponItemData | undefined {
+    //@ts-ignore // TODO: foundry-vtt-types v10
+    asWeapon(): WeaponItemData | undefined {
         if (this.wrapper.isWeapon()) {
             return this.data as WeaponItemData;
         }
@@ -1152,7 +1153,8 @@ export class SR5Item extends Item {
         return this.wrapper.isCyberware();
     }
 
-    asCyberwareData(): CyberwareItemData | undefined {
+    //@ts-ignore // TODO: foundry-vtt-types v10
+    asCyberware(): CyberwareItemData | undefined {
         if (this.isCyberware()) {
             return this.data as CyberwareItemData;
         }
@@ -1186,7 +1188,8 @@ export class SR5Item extends Item {
         return this.wrapper.isSpell();
     }
 
-    asSpellData(): SpellItemData | undefined {
+    //@ts-ignore // TODO: foundry-vtt-types v10
+    asSpell(): SpellItemData | undefined {
         if (this.isSpell()) {
             return this.data as SpellItemData;
         }
@@ -1196,7 +1199,8 @@ export class SR5Item extends Item {
         return this.wrapper.isSpritePower();
     }
 
-    asSpritePowerData(): SpritePowerItemData | undefined {
+    //@ts-ignore // TODO: foundry-vtt-types v10
+    asSpritePower(): SpritePowerItemData | undefined {
         if (this.isSpritePower()) {
             return this.data as SpritePowerItemData;
         }
@@ -1210,7 +1214,8 @@ export class SR5Item extends Item {
         return this.wrapper.isComplexForm();
     }
 
-    asComplexFormData(): ComplexFormItemData | undefined {
+    //@ts-ignore // TODO: foundry-vtt-types v10
+    asComplexForm(): ComplexFormItemData | undefined {
         if (this.isComplexForm()) {
             return this.data as ComplexFormItemData;
         }
@@ -1220,7 +1225,8 @@ export class SR5Item extends Item {
         return this.wrapper.isContact();
     }
 
-    asContactData(): ContactItemData | undefined {
+    //@ts-ignore // TODO: foundry-vtt-types v10
+    asContact(): ContactItemData | undefined {
         if (this.isContact()) {
             return this.data as ContactItemData;
         }
@@ -1230,7 +1236,8 @@ export class SR5Item extends Item {
         return this.wrapper.isCritterPower();
     }
 
-    asCritterPowerData(): CritterPowerItemData | undefined {
+    //@ts-ignore // TODO: foundry-vtt-types v10
+    asCritterPower(): CritterPowerItemData | undefined {
         if (this.isCritterPower()) {
             return this.data as CritterPowerItemData;
         }
@@ -1244,21 +1251,24 @@ export class SR5Item extends Item {
         return this.wrapper.isDevice();
     }
 
-    asDeviceData(): DeviceItemData | undefined {
+    //@ts-ignore // TODO: foundry-vtt-types v10
+    asDevice(): DeviceItemData | undefined {
         if (this.isDevice()) {
             return this.data as DeviceItemData;
         }
     }
 
-    asControllerData(): HostItemData | DeviceItemData | undefined {
-        return this.asHostData() || this.asDeviceData() || undefined;
+    //@ts-ignore // TODO: foundry-vtt-types v10
+    asController(): HostItemData | DeviceItemData | undefined {
+        return this.asHostData() || this.asDevice() || undefined;
     }
 
     isEquipment(): boolean {
         return this.wrapper.isEquipment();
     }
 
-    asEquipmentData(): EquipmentItemData | undefined {
+    //@ts-ignore // TODO: foundry-vtt-types v10
+    asEquipment(): EquipmentItemData | undefined {
         if (this.isEquipment()) {
             return this.data as EquipmentItemData;
         }
@@ -1581,7 +1591,7 @@ export class SR5Item extends Item {
     }
 
     async removeNetworkDevice(index: number) {
-        const controllerData = this.asControllerData();
+        const controllerData = this.asController();
         if (!controllerData) return;
 
         // Convert the index to a device link.
@@ -1592,7 +1602,7 @@ export class SR5Item extends Item {
     }
 
     async removeAllNetworkDevices() {
-        const controllerData = this.asControllerData();
+        const controllerData = this.asController();
         if (!controllerData) return;
 
         return await NetworkDeviceFlow.removeAllDevicesFromNetwork(this);
@@ -1630,7 +1640,7 @@ export class SR5Item extends Item {
      * Return all network device items within a possible PAN or WAN.
      */
     get networkDevices(): SR5Item[] {
-        const controllerData = this.asDeviceData() || this.asHostData();
+        const controllerData = this.asDevice() || this.asHostData();
         if (!controllerData) return [];
 
         return NetworkDeviceFlow.getNetworkDevices(this);

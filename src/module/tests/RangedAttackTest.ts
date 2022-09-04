@@ -60,7 +60,7 @@ export class RangedAttackTest extends SuccessTest {
 
     _prepareFireMode() {        
         // No firemodes selectable on dialog for invalid item provided.
-        const weaponData = this.item.asWeaponData();
+        const weaponData = this.item.asWeapon();
         if (!weaponData) return;
 
         //@ts-ignore // TODO: foundry-vtt-types v10 
@@ -75,7 +75,7 @@ export class RangedAttackTest extends SuccessTest {
 
     async _prepareWeaponRanges() {
         // Don't let missing weapon ranges break test.
-        const itemData = this.item?.asWeaponData();
+        const itemData = this.item?.asWeapon();
         if (!itemData) return;
 
         // Transform weapon ranges to something usable
