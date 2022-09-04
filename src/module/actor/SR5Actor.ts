@@ -825,7 +825,8 @@ export class SR5Actor extends Actor {
         if (skill.name === '' && skill.label !== undefined && skill.label !== '') {
             await this.hideSkill(skillId);
             // NOTE: For some reason unlinked token actors won't cause a render on update?
-            if (!this.data.token.actorLink)
+            //@ts-ignore // TODO: foundry-vtt-types v10
+            if (!this.prototypeToken.actorLink)
                 await this.sheet?.render();
             return;
         }
@@ -885,7 +886,8 @@ export class SR5Actor extends Actor {
 
         await this.update(updateData);
         // NOTE: For some reason unlinked token actors won't cause a render on update?
-        if (!this.data.token.actorLink)
+        //@ts-ignore // TODO: foundry-vtt-types v10
+        if (!this.prototypeToken.actorLink)
             await this.sheet?.render();
     }
 
@@ -1168,9 +1170,9 @@ export class SR5Actor extends Actor {
      * There is no need for a token to placed. The prototype token is enough.
      */
     _isLinkedToToken(): boolean {
-        //@ts-ignore
+        //@ts-ignore // TODO: foundry-vtt-types v10
         // If an actor is linked, all it's copies also contain this linked status, even if they're not.
-        return this.data.token.actorLink && !this.token;
+        return this.prototypeToken.actorLink && !this.token;
     }
 
     hasToken(): boolean {
