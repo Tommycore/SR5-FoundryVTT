@@ -102,7 +102,8 @@ export class RangedAttackTest extends SuccessTest {
      * Prepare distances between attacker and targeted tokens.
      */
     async _prepareTargetRanges() {
-        if (foundry.utils.isObjectEmpty(this.data.ranges)) return;
+        //@ts-ignore // TODO: foundry-vtt-types v10
+        if (foundry.utils.isEmpty(this.data.ranges)) return;
         if (!this.actor) return;
         if (!this.hasTargets) return;
 

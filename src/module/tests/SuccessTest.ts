@@ -843,7 +843,8 @@ export class SuccessTest {
      * This can either be from an items action or a pre-configured action.
      */
     get hasAction(): boolean {
-        return !foundry.utils.isObjectEmpty(this.data.action);
+        //@ts-ignore // TODO: foundry-vtt-types v10
+        return !foundry.utils.isEmpty(this.data.action);
     }
 
     /**

@@ -1676,7 +1676,8 @@ export class SR5Item extends Item {
         await super._preCreate(changed, options, user);
 
         // Don't kill DocumentData by applying empty objects. Also performance.
-        if (!foundry.utils.isObjectEmpty(applyData)) this.update(applyData);
+        //@ts-ignore // TODO: foundry-vtt-types v10
+        if (!foundry.utils.isEmpty(applyData)) this.update(applyData);
     }
 
     /**
