@@ -431,7 +431,7 @@ export class SR5Actor extends Actor {
         if (this.isVehicle()) {
             return this.findVehicleStat('pilot');
         } else if (this.isCharacter()) {
-            const character = this.asCharacterData();
+            const character = this.asCharacter();
             if (character) {
                 //@ts-ignore // TODO: foundry-vtt-types v10
                 let att = character.system.full_defense_attribute;
@@ -1510,40 +1510,40 @@ export class SR5Actor extends Actor {
     }
 
     //@ts-ignore // TODO: foundry-vtt-types v10 - will return the item 
-    asVehicleData(): VehicleActorData | undefined {
+    asVehicle(): VehicleActorData | undefined {
         if (this.isVehicle())
             return this.data as VehicleActorData;
     }
 
     //@ts-ignore // TODO: foundry-vtt-types v10 - will return the item 
-    asCharacterData(): CharacterActorData | undefined {
+    asCharacter(): CharacterActorData | undefined {
         if (this.isCharacter())
             return this.data as CharacterActorData;
     }
 
     //@ts-ignore // TODO: foundry-vtt-types v10 - will return the item 
-    asSpiritData(): SpiritActorData | undefined {
+    asSpirit(): SpiritActorData | undefined {
         if (this.isSpirit()) {
             return this.data as SpiritActorData;
         }
     }
 
     //@ts-ignore // TODO: foundry-vtt-types v10 - will return the item 
-    asSpriteData(): SpriteActorData | undefined {
+    asSprite(): SpriteActorData | undefined {
         if (this.isSprite()) {
             return this.data as SpriteActorData;
         }
     }
 
     //@ts-ignore // TODO: foundry-vtt-types v10 - will return the item 
-    asCritterData(): CritterActorData | undefined {
+    asCritter(): CritterActorData | undefined {
         if (this.isCritter()) {
             return this.data as CritterActorData;
         }
     }
 
     //@ts-ignore // TODO: foundry-vtt-types v10 - will return the item 
-    asICData(): ICActorData | undefined {
+    asIC(): ICActorData | undefined {
         if (this.isIC()) {
             return this.data as ICActorData;
         }
@@ -1580,7 +1580,7 @@ export class SR5Actor extends Actor {
     }
 
     hasDriver(): boolean {
-        const data = this.asVehicleData();
+        const data = this.asVehicle();
         if (!data) return false;
 
         //@ts-ignore // TODO: foundry-vtt-types v10
@@ -1589,7 +1589,7 @@ export class SR5Actor extends Actor {
 
     getVehicleDriver(): SR5Actor | undefined {
         if (!this.hasDriver()) return;
-        const data = this.asVehicleData();
+        const data = this.asVehicle();
         if (!data) return;
 
         //@ts-ignore // TODO: foundry-vtt-types v10
@@ -1652,7 +1652,7 @@ export class SR5Actor extends Actor {
      * Will return true if this ic type actor has been connected to a host.
      */
     hasHost(): boolean {
-        const ic = this.asICData();
+        const ic = this.asIC();
         if (!ic) return false;
         //@ts-ignore // TODO: foundry-vtt-types v10
         return ic && !!ic.system.host.id;
@@ -1662,7 +1662,7 @@ export class SR5Actor extends Actor {
      * Get the host item connect to this ic type actor.
      */
     getICHost(): SR5Item | undefined {
-        const ic = this.asICData();
+        const ic = this.asIC();
         if (!ic) return;
         //@ts-ignore // TODO: foundry-vtt-types v10
         return game.items?.get(ic?.system?.host.id);

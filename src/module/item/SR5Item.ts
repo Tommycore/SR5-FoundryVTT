@@ -1382,7 +1382,7 @@ export class SR5Item extends Item {
             return;
         }
 
-        const icData = actor.asICData();
+        const icData = actor.asIC();
         if (!icData) return;
 
         // Add IC to the hosts IC order
