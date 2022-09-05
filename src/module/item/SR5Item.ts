@@ -398,7 +398,7 @@ export class SR5Item extends Item {
         await test.execute();
 }
 
-    getChatData(htmlOptions?) {
+    getChatData(htmlOptions={}) {
         //@ts-ignore // TODO: foundry-vtt-types v10 
         const system = duplicate(this.system);
         const { labels } = this;
@@ -407,8 +407,8 @@ export class SR5Item extends Item {
         if (!system.description) system.description = {};
         // TextEditor.enrichHTML will return null as a string, making later handling difficult.
         if (!system.description.value) system.description.value = '';
-
-        system.description.value = TextEditor.enrichHTML(system.description.value, htmlOptions);
+        //@ts-ignore // TODO: foundry-vtt-types v10
+        system.description.value = TextEditor.enrichHTML(system.description.value, {...htmlOptions, async: false});
 
         const props = [];
         //@ts-ignore // TODO: foundry-vtt-types v10 
@@ -444,9 +444,7 @@ export class SR5Item extends Item {
         return parts;
     }
 
-
-
-     getBlastData(actionTestData?: ActionTestData): BlastData | undefined {
+    getBlastData(actionTestData?: ActionTestData): BlastData | undefined {
         if (this.isSpell() && this.isAreaOfEffect()) {
             //@ts-ignore // TODO: foundry-vtt-types v10 
             const system = this.system as SpellData;
