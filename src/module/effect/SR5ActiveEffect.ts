@@ -3,7 +3,12 @@ import {Helpers} from "../helpers";
 import ModifiableValue = Shadowrun.ModifiableValue;
 import {EffectChangeData} from "@league-of-foundry-developers/foundry-vtt-types/src/foundry/common/data/data.mjs/effectChangeData";
 
+
+
 export class SR5ActiveEffect extends ActiveEffect {
+    // TODO: foundry-vtt-types v10 - getProperty(actor.data works with 'data.attributes' and 'system.attributes')
+    //                               changing it to actor works with 'system.attributes' but 'data.attributes' will break.
+    static LOG_V10_COMPATIBILITY_WARNINGS = false;
     /**
      * Can be used to determine if the origin of the effect is an document that is owned by another document.
      *
