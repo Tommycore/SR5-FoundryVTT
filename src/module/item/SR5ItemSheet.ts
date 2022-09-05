@@ -36,19 +36,22 @@ export class SR5ItemSheet extends ItemSheet {
      * Prepare data for rendering the Item sheet
      * The prepared data object contains both the actor data as well as additional sheet options
      */
-    getData() {
-        let data = super.getData();
+    async getData(options) {
+        let data = super.getData(options);
+
         // Foundry 0.8 will return data as an sheet data while Foundry 0.7 will return data as an item data.
         // Therefore data is nested one deeper. The alternative would be to rework all references with one more data...
         //@ts-ignore
         data.type = data.data.type;
         // data.data = data.system = data.data;
         //@ts-ignore
-        data.system = data.data.system;
+        data.system = data.item.system;
         //@ts-ignore // TODO: remove TODO: foundry-vtt-types v10
-        data.data = data.data.system;
+        data.data = data.item.system;
         //@ts-ignore
         const itemData = this.item.system;
+        //@ts-ignore
+        // data.system.description.value = this.document.getChatData();
 
         if (itemData.action) {
             try {
@@ -122,6 +125,15 @@ export class SR5ItemSheet extends ItemSheet {
         data.activeTests = game.shadowrun5e.activeTests;
         // @ts-ignore
         data.resistTests = game.shadowrun5e.resistTests;
+
+        // @ts-ignore TODO: foundry-vtt-types v10
+        data.descriptionHTML = await TextEditor.enrichHTML(this.item.system.description.value, {
+            // secrets: this.item.isOwner,
+            // rollData: this.actor.getRollData.bind(this.actor),
+            // @ts-ignore TODO: foundry-vtt-types v10
+            async: true,
+            // relativeTo: this.item
+          });
 
         return data;
     }
