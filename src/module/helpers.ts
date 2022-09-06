@@ -455,7 +455,7 @@ export class Helpers {
         const useTokenNameForChatOutput = game.settings.get(SYSTEM_NAME, FLAGS.ShowTokenNameForChatOutput);
         const token = actor.getToken();
 
-        if (useTokenNameForChatOutput && token) return token.data.name as string;
+        if (useTokenNameForChatOutput && token) return token.name as string;
 
         return actor.name as string;
     }
@@ -474,7 +474,8 @@ export class Helpers {
         const useTokenForChatOutput = game.settings.get(SYSTEM_NAME, FLAGS.ShowTokenNameForChatOutput);
         const token = actor.getToken();
 
-        if (useTokenForChatOutput && token) return token.data.img || '';
+        //@ts-ignore // TODO: foundry-vtt-types v10
+        if (useTokenForChatOutput && token) return token.img || '';
         return actor.img || '';
     }
 
