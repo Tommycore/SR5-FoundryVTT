@@ -475,7 +475,7 @@ export class Helpers {
         const token = actor.getToken();
 
         //@ts-ignore // TODO: foundry-vtt-types v10
-        if (useTokenForChatOutput && token) return token.img || '';
+        if (useTokenForChatOutput && token) return token.texture.src || '';
         return actor.img || '';
     }
 
