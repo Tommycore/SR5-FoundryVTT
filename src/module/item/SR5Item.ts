@@ -1,25 +1,22 @@
-import {Helpers} from '../helpers';
-import {SR5Actor} from '../actor/SR5Actor';
-import {ActionTestData} from '../apps/dialogs/ShadowrunItemDialog';
-import {ChatData} from './ChatData';
-import {createItemChatMessage} from '../chat';
-import {DEFAULT_ROLL_NAME, FLAGS, SYSTEM_NAME} from '../constants';
-import {SR5ItemDataWrapper} from '../data/SR5ItemDataWrapper';
-import {PartsList} from '../parts/PartsList';
-import {ActionFlow} from "./flows/ActionFlow";
-import {SkillFlow} from "../actor/flows/SkillFlow";
-import {SR5} from "../config";
-import {DefaultValues} from "../data/DataDefaults";
-import {HostDataPreparation} from "./prep/HostPrep";
-import {MatrixRules} from "../rules/MatrixRules";
-import {NetworkDeviceFlow} from "./flows/NetworkDeviceFlow";
-import {TestCreator} from "../tests/TestCreator";
-import {Test} from "../rolls/ShadowrunRoller";
+import { SkillFlow } from "../actor/flows/SkillFlow";
+import { SR5Actor } from '../actor/SR5Actor';
+import { ActionTestData } from '../apps/dialogs/ShadowrunItemDialog';
+import { createItemChatMessage } from '../chat';
+import { DEFAULT_ROLL_NAME, FLAGS, SYSTEM_NAME } from '../constants';
+import { DefaultValues } from "../data/DataDefaults";
+import { SR5ItemDataWrapper } from '../data/SR5ItemDataWrapper';
+import { Helpers } from '../helpers';
+import { PartsList } from '../parts/PartsList';
+import { Test } from "../rolls/ShadowrunRoller";
+import { MatrixRules } from "../rules/MatrixRules";
+import { TestCreator } from "../tests/TestCreator";
+import { ChatData } from './ChatData';
+import { NetworkDeviceFlow } from "./flows/NetworkDeviceFlow";
+import { HostDataPreparation } from "./prep/HostPrep";
 import ModList = Shadowrun.ModList;
 import AttackData = Shadowrun.AttackData;
 import AttributeField = Shadowrun.AttributeField;
 import SkillField = Shadowrun.SkillField;
-import LimitField = Shadowrun.LimitField;
 import FireModeData = Shadowrun.FireModeData;
 import SpellForceData = Shadowrun.SpellForceData;
 import ComplexFormLevelData = Shadowrun.ComplexFormLevelData;
@@ -31,7 +28,6 @@ import DamageData = Shadowrun.DamageData;
 import SpellData = Shadowrun.SpellData;
 import WeaponData = Shadowrun.WeaponData;
 import AmmoData = Shadowrun.AmmoData;
-import TechnologyPartData = Shadowrun.TechnologyPartData;
 import TechnologyData = Shadowrun.TechnologyData;
 import RangeWeaponData = Shadowrun.RangeWeaponData;
 import SpellRange = Shadowrun.SpellRange;
@@ -60,7 +56,6 @@ import ActionResultData = Shadowrun.ActionResultData;
 import MatrixMarks = Shadowrun.MatrixMarks;
 import MarkedDocument = Shadowrun.MarkedDocument;
 import RollEvent = Shadowrun.RollEvent;
-import AmmunitionData = Shadowrun.AmmunitionData;
 
 /**
  * Implementation of Shadowrun5e items (owned, unowned and embedded).
@@ -562,7 +557,6 @@ export class SR5Item extends Item {
     async reloadAmmo() {
         if (this.type !== 'weapon') return;
         
-
         // Reload this weapons ammunition to it's max capacity.
         const updateData = {};
         //@ts-ignore // TODO: foundry-vtt-types v10 
@@ -581,23 +575,37 @@ export class SR5Item extends Item {
 
 
         // Reduce capacity in whatever equipped nested ammunition item.
+        // TODO: This must be the other way around. Reduce equipped ammo first and only reload what's possible to the weapon item.
+        //       Additionally there needs to be a reload clip mechanism equipping / unequipping clips/mags
         const newAmmunition = (this.items || [])
             .filter((i) => i.type === 'ammo')
-            .reduce((acc, item) => {
+            .reduce((acc: AmmoItemData[], item: SR5Item) => {
                 //@ts-ignore // TODO: foundry-vtt-types v10 
+                // Not-equipped ammunition isn't expected to be consumed.
                 if (item.data && item.data.system.technology.equipped) {
+
+                    const itemData = item.toObject() as AmmoItemData;
                     //@ts-ignore // TODO: foundry-vtt-types v10 
-                    const { technology } = item.data.system;
-                    const qty = typeof technology.quantity === 'string' ? 0 : technology.quantity;
-                    technology.quantity = Math.max(0, qty - diff);
-                    // @ts-ignore
-                    acc.push(item.data);
+                    const qty = typeof itemData.system.technology.quantity === 'string' ? 0 : itemData.system.technology.quantity;
+
+                    // Inform user about missing rounds.
+                    if (qty - diff < 0) {
+                        ui.notifications?.warn('SR5.Warnings.CantConsumeEquippedAmmo', {localize: true})
+                    }
+                    
+                    //@ts-ignore // TODO: foundry-vtt-types v10 
+                    itemData.system.technology.quantity = Math.max(0, qty - diff);
+                    acc.push(itemData);
                 }
+                
                 return acc;
             }, []);
 
         if (newAmmunition && newAmmunition.length) {
             await this.updateNestedItems(newAmmunition);
+
+            // Inform user about change to equipped ammo.
+            ui.notifications?.info('SR5.Infos.ConsumedEquippedAmmo', {localize: true});
         }
     }
 
