@@ -1321,12 +1321,9 @@ export class SuccessTest {
      * is prepared to support multiple action buttons.
      */
     _prepareOpposedActionsTemplateData() {
-        // @ts-ignore TODO: Move this into a helper
         const testCls = this._opposedTestClass;
-        if (!testCls) {
-            console.error('Shadowrun 5e | Opposed Action has no test class registered.');
-            return [];
-        }
+        // No opposing test configured. Nothing to build.
+        if (!testCls) return [];
 
         const action = {
             // Store the test implementation registration name.
