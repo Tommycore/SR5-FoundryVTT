@@ -7,7 +7,6 @@
  */
 import {VersionMigration} from "../VersionMigration";
 import ShadowrunItemData = Shadowrun.ShadowrunItemData;
-import {SR5} from "../../config";
 import ShadowrunActorData = Shadowrun.ShadowrunActorData;
 import {Helpers} from "../../helpers";
 

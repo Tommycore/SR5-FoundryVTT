@@ -274,6 +274,13 @@ ___________________
 
     static async ready() {
         if (game.user?.isGM) {
+            // Prohibit migration on empty worlds...
+            if (Migrator.isEmptyWorld) {
+                await Migrator.InitWorldForMigration();
+                return;
+            }
+            
+            // On populated worlds, try migrating
             await Migrator.BeginMigration();
 
             if (ChangelogApplication.showApplication) {
